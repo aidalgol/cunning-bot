@@ -66,7 +66,7 @@
 (define get-realname (record-accessor bot-type 'realname))
 (define (set-realname bot realname)
   (if (not (valid-nick/username/realname? realname))
-      (error "Invalid realrealname.")
+      (error "Invalid realname.")
       ((record-modifier bot-type 'realname) bot realname)))
 
 (define get-conn (record-accessor bot-type 'conn))
