@@ -20,6 +20,18 @@
              (system repl server))
 
 (load "commands.scm")
+
+(define socket-file-name "cbot-repl-socket")
 (define bot (make-bot "Cunning_Bot" "Cunning_Bot" "Cunning Bot" "irc.example.net" 6667))
-(spawn-server (make-unix-domain-server-socket #:path "cbot-repl-socket"))
-(start-bot bot '("#example"))
+
+(spawn-server (make-unix-domain-server-socket #:path socket-file-name))
+
+;; Does not work because of bug#13018.  Fixed in trunk.  See
+;; https://lists.gnu.org/archive/html/bug-guile/2013-08/msg00003.html
+;;
+;; (sigaction SIGINT
+;;   (lambda ()
+;;     (quit-irc bot)
+;;     (delete-file socket-file-name)))
+
+(start-bot bot '("#cunning-bot"))
