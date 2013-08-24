@@ -16,8 +16,10 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(use-modules (cunning-bot bot))
+(use-modules (cunning-bot bot)
+             (system repl server))
 
 (load "commands.scm")
 (define bot (make-bot "Cunning_Bot" "Cunning_Bot" "Cunning Bot" "irc.example.net" 6667))
+(spawn-server (make-unix-domain-server-socket #:path "cbot-repl-socket"))
 (start-bot bot '("#example"))

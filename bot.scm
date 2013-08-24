@@ -20,8 +20,10 @@
   #:use-module (ice-9 format)
   #:use-module (spells network)
   #:export (make-bot
+            send-privmsg
             make-action
-            join-channel
+            join-channels
+            quit-irc
             start-bot))
 
 (define line-end "\r\n")
