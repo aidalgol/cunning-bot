@@ -22,6 +22,7 @@
   #:export (make-bot
             send-privmsg
             make-action
+            register-command!
             join-channels
             quit-irc
             start-bot))
@@ -30,7 +31,7 @@
 (define version "Cunning Bot v0.1")
 (define debugging #f) ;; Whether to print debugging messages.
 
-(define bot-type (make-record-type "bot" '(nick username realname server port conn)))
+(define bot-type (make-record-type "bot" '(nick username realname server port conn commands)))
 
 (define (valid-nick/username/realname? string)
   "Returns whether STRING is a valid nick, username, or realname."
@@ -38,7 +39,8 @@
        (not (string-null? string))))
 
 (define (make-bot nick username realname server port)
-  (let ((bot ((record-constructor bot-type) #f #f #f server port #f)))
+  (let ((bot ((record-constructor bot-type) #f #f #f server port #f
+              (resolve-module (list (gensym "bot-commands:"))))))
     (set-nick bot nick)
     (set-username bot username)
     (set-realname bot realname)
@@ -70,6 +72,15 @@
   (if (not (valid-nick/username/realname? realname))
       (error "Invalid realname.")
       ((record-modifier bot-type 'realname) bot realname)))
+
+(define get-commands (record-accessor bot-type 'commands))
+(define (register-command! bot name function)
+  (module-define! (get-commands bot) name function))
+
+(define (bot-command bot command-name)
+  (define commands (get-commands bot))
+  (cond ((module-variable commands command-name) => variable-ref)
+        (else #f)))
 
 (define get-conn (record-accessor bot-type 'conn))
 (define set-conn (record-modifier bot-type 'conn))
@@ -197,13 +208,15 @@ catching and reporting any errors."
       ;; procedure, then reply with an error message saying so.
       (catch #t
         (lambda ()
-          (let ((result (eval (list command sender args)
-                              (resolve-module '(cunning-bot commands)))))
-            (if (string? result)
-                (begin
-                  (debug "Command ran successfully.~%")
-                  (send-privmsg bot result recipient))
-                (error "Command return value not a string."))))
+          (let ((proc (bot-command bot command)))
+            (if proc
+                (let ((result (proc sender args)))
+                  (if (string? result)
+                      (begin
+                        (debug "Command ran successfully.~%")
+                        (send-privmsg bot result recipient))
+                      (error "Command return value not a string.")))
+                (error "No such command" command))))
         (lambda (key subr message args rest)
           (debug "The command failed. :(~%")
           (send-privmsg bot (apply format (append (list #f message) args))
