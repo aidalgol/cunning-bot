@@ -18,6 +18,7 @@
 
 (use-modules (cunning-bot bot)
              (system repl server)
+             (cunning-bot plugins)
              (cunning-bot commands))
 
 (define socket-file-name "cbot-repl-socket")
@@ -27,6 +28,7 @@
           (list 'flay 'say-hello)
           (list  flay say-hello))
 
+(use-plugin! bot 'shoot)
 (spawn-server (make-unix-domain-server-socket #:path socket-file-name))
 
 ;; Does not work because of bug#13018.  Fixed in trunk.  See
