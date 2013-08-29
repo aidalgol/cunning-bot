@@ -22,6 +22,7 @@
   #:export (make-bot
             send-privmsg
             make-action
+            register-command!
             join-channels
             quit-irc
             start-bot))
@@ -30,7 +31,7 @@
 (define version "Cunning Bot v0.1")
 (define debugging #f) ;; Whether to print debugging messages.
 
-(define bot-type (make-record-type "bot" '(nick username realname server port conn)))
+(define bot-type (make-record-type "bot" '(nick username realname server port conn commands privmsg-hook)))
 
 (define (valid-nick/username/realname? string)
   "Returns whether STRING is a valid nick, username, or realname."
@@ -38,10 +39,15 @@
        (not (string-null? string))))
 
 (define (make-bot nick username realname server port)
-  (let ((bot ((record-constructor bot-type) #f #f #f server port #f)))
+  (define privmsg-hook (make-hook 5))
+  (let ((bot ((record-constructor bot-type) #f #f #f server port #f
+              (resolve-module (list (gensym "bot-commands:")))
+              privmsg-hook)))
     (set-nick bot nick)
     (set-username bot username)
     (set-realname bot realname)
+    (add-hook! privmsg-hook version-respond)
+    (add-hook! privmsg-hook handle-commands)
     bot))
 
 (define get-server (record-accessor bot-type 'server))
@@ -70,6 +76,15 @@
   (if (not (valid-nick/username/realname? realname))
       (error "Invalid realname.")
       ((record-modifier bot-type 'realname) bot realname)))
+
+(define get-commands (record-accessor bot-type 'commands))
+(define (register-command! bot name function)
+  (module-define! (get-commands bot) name function))
+
+(define (bot-command bot command-name)
+  (define commands (get-commands bot))
+  (cond ((module-variable commands command-name) => variable-ref)
+        (else #f)))
 
 (define get-conn (record-accessor bot-type 'conn))
 (define set-conn (record-modifier bot-type 'conn))
@@ -103,7 +118,7 @@
     (format #t s exp ...)))
 
 ;; `privmsg-hook' is run with the arguments (bot sender target message ctcp).
-(define privmsg-hook (make-hook 5))
+(define bot-privmsg-hook (record-accessor bot-type 'privmsg-hook))
 
 (define (irc-send bot string)
   "Send STRING to the IRC server associated with BOT."
@@ -170,7 +185,7 @@ ignored."
     (debug "~:[Message~;CTCP message~] received from ~s sent to ~s: ~s~%"
            ctcp sender target message)
     (debug "Running PRIVMSG hook.~%")
-    (run-hook privmsg-hook bot sender target message ctcp)))
+    (run-hook (bot-privmsg-hook bot) bot sender target message ctcp)))
 
 ;; Command procedure names are the command name prepended with cmd-
 (define (handle-commands bot sender target message ctcp)
@@ -197,13 +212,15 @@ catching and reporting any errors."
       ;; procedure, then reply with an error message saying so.
       (catch #t
         (lambda ()
-          (let ((result (eval (list command sender args)
-                              (resolve-module '(cunning-bot commands)))))
-            (if (string? result)
-                (begin
-                  (debug "Command ran successfully.~%")
-                  (send-privmsg bot result recipient))
-                (error "Command return value not a string."))))
+          (let ((proc (bot-command bot command)))
+            (if proc
+                (let ((result (proc sender args)))
+                  (if (string? result)
+                      (begin
+                        (debug "Command ran successfully.~%")
+                        (send-privmsg bot result recipient))
+                      (error "Command return value not a string.")))
+                (error "No such command" command))))
         (lambda (key subr message args rest)
           (debug "The command failed. :(~%")
           (send-privmsg bot (apply format (append (list #f message) args))
@@ -212,7 +229,6 @@ catching and reporting any errors."
                         ;; assume it was sent to a channel and reply to
                         ;; the channel.
                         recipient))))))
-(add-hook! privmsg-hook handle-commands)
 
 (define (version-respond bot sender target message ctcp)
   "Respond to CTCP VERSION requests."
@@ -220,7 +236,6 @@ catching and reporting any errors."
              (string=? "VERSION" message))
     (debug "Responding to VERSION request sent by ~s~%" sender)
     (irc-send bot (format #f "NOTICE ~a :~a" sender version))))
-(add-hook! privmsg-hook version-respond)
 
 (define (start-bot bot channels)
   ;; Establish TCP connection.

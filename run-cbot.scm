@@ -17,12 +17,15 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (use-modules (cunning-bot bot)
-             (system repl server))
-
-(load "commands.scm")
+             (system repl server)
+             (cunning-bot commands))
 
 (define socket-file-name "cbot-repl-socket")
 (define bot (make-bot "Cunning_Bot" "Cunning_Bot" "Cunning Bot" "irc.example.net" 6667))
+(for-each (lambda (n c)
+            (register-command! bot n c))
+          (list 'flay 'say-hello)
+          (list  flay say-hello))
 
 (spawn-server (make-unix-domain-server-socket #:path socket-file-name))
 
