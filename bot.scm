@@ -25,13 +25,14 @@
             register-command!
             join-channels
             quit-irc
+            add-quit-hook!
             start-bot))
 
 (define line-end "\r\n")
 (define version "Cunning Bot v0.1")
 (define debugging #f) ;; Whether to print debugging messages.
 
-(define bot-type (make-record-type "bot" '(nick username realname server port conn commands privmsg-hook)))
+(define bot-type (make-record-type "bot" '(nick username realname server port conn commands privmsg-hook quit-hook)))
 
 (define (valid-nick/username/realname? string)
   "Returns whether STRING is a valid nick, username, or realname."
@@ -42,7 +43,7 @@
   (define privmsg-hook (make-hook 5))
   (let ((bot ((record-constructor bot-type) #f #f #f server port #f
               (resolve-module (list (gensym "bot-commands:")))
-              privmsg-hook)))
+              privmsg-hook (make-hook 0))))
     (set-nick bot nick)
     (set-username bot username)
     (set-realname bot realname)
@@ -119,6 +120,10 @@
 
 ;; `privmsg-hook' is run with the arguments (bot sender target message ctcp).
 (define bot-privmsg-hook (record-accessor bot-type 'privmsg-hook))
+
+(define bot-quit-hook (record-accessor bot-type 'quit-hook))
+(define (add-quit-hook! bot thunk)
+  (add-hook! (bot-quit-hook bot) thunk))
 
 (define (irc-send bot string)
   "Send STRING to the IRC server associated with BOT."
@@ -275,5 +280,6 @@ catching and reporting any errors."
 
   ;; Enter the message-polling loop.
   (do ((line (read-line-irc bot) (read-line-irc bot)))
-      ((eof-object? line))
+      ((eof-object? line)
+       (run-hook (bot-quit-hook bot)))
     (process-line bot line)))
