@@ -14,4 +14,8 @@
     (resolve-interface `(cunning-bot plugins ,plugin-name) #:hide hidden-exports))
   (define command-module
     ((@@ (cunning-bot bot) get-commands) bot))
-  (module-use! command-module cleaned-module))
+  (module-use! command-module cleaned-module)
+  (when (module-defined? plugin-module 'setup!)
+    ((module-ref plugin-module 'setup!)))
+  (when (module-defined? plugin-module 'teardown!)
+    (add-quit-hook! bot (module-ref plugin-module 'teardown!)))))
