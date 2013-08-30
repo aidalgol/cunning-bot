@@ -22,10 +22,12 @@
 
 (define socket-file-name "cbot-repl-socket")
 (define bot (make-bot "Cunning_Bot" "Cunning_Bot" "Cunning Bot" "irc.example.net" 6667))
-(for-each (lambda (n c)
-            (register-command! bot n c))
-          (list 'flay 'say-hello)
-          (list  flay say-hello))
+(for-each (lambda (command)
+            (let ((name (car command))
+                  (proc (cdr command)))
+             (register-command! bot name proc)))
+          `((flay . ,flay)
+            (say-hello . ,say-hello)))
 
 (spawn-server (make-unix-domain-server-socket #:path socket-file-name))
 
