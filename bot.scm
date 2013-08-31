@@ -113,16 +113,16 @@
     (set-conn bot (open-tcp-connection server port)))
   (format #t "done.~%"))
 
-(define-syntax-rule (debug s exp ...)
+(define-syntax-rule (debug bot str exp ...)
   (when debugging
-    (format #t s exp ...)))
+    (format #t (string-append "~a@~a: " str) (get-nick bot) (get-server bot) exp ...)))
 
 ;; `privmsg-hook' is run with the arguments (bot sender target message ctcp).
 (define bot-privmsg-hook (record-accessor bot-type 'privmsg-hook))
 
 (define (irc-send bot string)
   "Send STRING to the IRC server associated with BOT."
-  (debug "Sending line: ~s~%" string)
+  (debug bot "Sending line: ~s~%" string)
   (format (get-bot-out-port bot)
           "~a~a" string line-end))
 
@@ -132,7 +132,7 @@ the trailing CRLF."
   (let ((line (read-line (get-bot-in-port bot))))
     (unless (eof-object? line)
       (set! line (string-drop-right line 1))
-      (debug "Read line ~s~%" line))
+      (debug bot "Read line ~s~%" line))
     line))
 
 (define (pong line)
@@ -182,9 +182,9 @@ ignored."
                    #t #f)))
     (when ctcp
       (set! message (match:substring match 1)))
-    (debug "~:[Message~;CTCP message~] received from ~s sent to ~s: ~s~%"
+    (debug bot "~:[Message~;CTCP message~] received from ~s sent to ~s: ~s~%"
            ctcp sender target message)
-    (debug "Running PRIVMSG hook.~%")
+    (debug bot "Running PRIVMSG hook.~%")
     (run-hook (bot-privmsg-hook bot) bot sender target message ctcp)))
 
 ;; Command procedure names are the command name prepended with cmd-
@@ -207,7 +207,7 @@ catching and reporting any errors."
     (when (and match
                (or direct line-prefix)
                (not ctcp))
-      (debug "Received command invocation; looking up ~s~%" command)
+      (debug bot "Received command invocation; looking up ~s~%" command)
       ;; Try to execute the command procudure.  If there is no such
       ;; procedure, then reply with an error message saying so.
       (catch #t
@@ -217,12 +217,12 @@ catching and reporting any errors."
                 (let ((result (proc sender args)))
                   (if (string? result)
                       (begin
-                        (debug "Command ran successfully.~%")
+                        (debug bot "Command ran successfully.~%")
                         (send-privmsg bot result recipient))
                       (error "Command return value not a string.")))
                 (error "No such command" command))))
         (lambda (key subr message args rest)
-          (debug "The command failed. :(~%")
+          (debug bot "The command failed. :(~%")
           (send-privmsg bot (apply format (append (list #f message) args))
                         ;; If the command was sent directly to me, then
                         ;; reply directly to the sender, otherwise,
@@ -234,7 +234,7 @@ catching and reporting any errors."
   "Respond to CTCP VERSION requests."
   (when (and ctcp
              (string=? "VERSION" message))
-    (debug "Responding to VERSION request sent by ~s~%" sender)
+    (debug bot "Responding to VERSION request sent by ~s~%" sender)
     (irc-send bot (format #f "NOTICE ~a :~a" sender version))))
 
 (define (start-bot bot channels)
@@ -242,7 +242,7 @@ catching and reporting any errors."
   (connect-bot bot)
 
   ;; Setup the IRC connection.
-  (display "Setting up IRC connection...") (debug "~%")
+  (display "Setting up IRC connection...") (debug bot "~%")
   (irc-send bot (format #f "NICK ~a" (get-nick bot)))
   (irc-send bot (format #f "USER ~a 0 * :~a"
                         (get-username bot) (get-realname bot)))
