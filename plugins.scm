@@ -1,6 +1,7 @@
 (define-module (cunning-bot plugins)
   #:use-module (cunning-bot bot)
-  #:export (use-plugin!))
+  #:export (use-plugin!
+            use-plugins!))
 
 (define magic-exports '(setup! teardown!))
 
@@ -18,4 +19,9 @@
   (when (module-defined? plugin-module 'setup!)
     ((module-ref plugin-module 'setup!)))
   (when (module-defined? plugin-module 'teardown!)
-    (add-quit-hook! bot (module-ref plugin-module 'teardown!)))))
+    (add-quit-hook! bot (module-ref plugin-module 'teardown!))))
+
+(define (use-plugins! bot plugins)
+  (for-each (lambda (plugin)
+              (use-plugin! bot plugin))
+            plugins))
