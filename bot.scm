@@ -219,7 +219,7 @@ catching and reporting any errors."
         (lambda ()
           (let ((proc (bot-command bot command)))
             (if proc
-                (let ((result (proc sender args)))
+                (let ((result (proc bot sender args)))
                   (if (string? result)
                       (begin
                         (debug bot "Command ran successfully.~%")
