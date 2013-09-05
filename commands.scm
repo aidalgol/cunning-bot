@@ -19,7 +19,7 @@
 
 (define-public (flay sender args)
   (if (string-null? args)
-      "Who do you want me to flay?"
+      "Whom do you want me to flay?"
       (make-action (string-append "flays " args "."))))
 
 (define-public (say-hello sender args)
