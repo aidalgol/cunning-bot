@@ -9,7 +9,7 @@
   (set! (@@ (cunning-bot bot) debugging)
         (not (@@ (cunning-bot bot) debugging))))
 
-(define (debug sender args)
+(define (debug bot sender args)
   (match (string-downcase (string-trim-both args))
     ("on" (set-debugging! #t) "done")
     ("off" (set-debugging! #f) "done")

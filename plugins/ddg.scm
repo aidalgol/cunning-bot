@@ -5,7 +5,7 @@
 (define (one-word? s)
   (not (string-index s char-whitespace?)))
 
-(define (ddg-define sender args)
+(define (ddg-define bot sender args)
   (define args* (string-trim-both args))
   (if (not (one-word? args*))
       (string-append sender ": One word at a time, please.")
