@@ -1,6 +1,7 @@
 (define-module (cunning-bot plugins admin)
+  #:use-module (cunning-bot bot)
   #:use-module (ice-9 match)
-  #:export (debug auth revoke))
+  #:export (debug auth revoke (my-quit . quit) join))
 
 ;; Should be bot local
 (define *master* #f)
@@ -62,3 +63,13 @@
     ("off" (set-debugging! #f) "done")
     ("" (toggle-debugging!) "toggled")
     (other (string-append "option not supported: " other))))
+
+(define (my-quit bot sender args)
+  (fail-if-not-master sender)
+  (quit-irc bot)
+  (quit 0)) ; necessary? probably not a good idea
+
+(define (join bot sender args)
+  (fail-if-not-master sender)
+  (join-channels bot (string-tokenize args))
+  "done.")
