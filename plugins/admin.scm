@@ -1,4 +1,4 @@
-(define-module (cunning-bot plugins debug)
+(define-module (cunning-bot plugins admin)
   #:use-module (ice-9 match)
   #:export (debug))
 
