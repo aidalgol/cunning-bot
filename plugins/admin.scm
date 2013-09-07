@@ -1,6 +1,7 @@
 (define-module (cunning-bot plugins admin)
   #:use-module (cunning-bot bot)
   #:use-module (ice-9 match)
+  #:use-module (ice-9 documentation)
   #:export (debug auth revoke (my-quit . quit) join (my-eval . eval)))
 
 ;; Should be bot local
@@ -17,9 +18,12 @@
 (define admin-command? (make-object-property))
 
 (define (decorate-admin proc)
-  (lambda (bot sender args)
-    (fail-if-not-master sender)
-    (proc bot sender args)))
+  (define new-proc
+    (lambda (bot sender args)
+      (fail-if-not-master sender)
+      (proc bot sender args)))
+  (set-object-property! new-proc 'documentation (object-documentation proc))
+  new-proc)
 
 (define-syntax-rule (define-admin (function . args) . body)
   (begin
