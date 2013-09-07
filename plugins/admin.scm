@@ -1,7 +1,7 @@
 (define-module (cunning-bot plugins admin)
   #:use-module (cunning-bot bot)
   #:use-module (ice-9 match)
-  #:export (debug auth revoke (my-quit . quit) join))
+  #:export (debug auth revoke (my-quit . quit) join (my-eval . eval)))
 
 ;; Should be bot local
 (define *master* #f)
@@ -82,3 +82,18 @@
 (define-admin (join bot sender args)
   (join-channels bot (string-tokenize args))
   "done.")
+
+(define (string->object s)
+  (call-with-input-string s read))
+
+(define *guile-module* (resolve-module '(guile)))
+(define-admin (my-eval bot sender args)
+  "Evals one sexp in (guile)"
+  (call-with-values
+      (lambda ()
+        (eval (string->object args) *guile-module*))
+    (case-lambda
+      (() "No values returned.")
+      ((a) (object->string a))
+      ((a . b) (format #f "multiple values, returning first: ~s" a)))))
+
