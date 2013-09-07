@@ -147,7 +147,9 @@ LINE should be an IRC PING command from the server."
 
 (define (send-privmsg bot message target)
   "Send a PRIVMSG MESSAGE to TARGET."
-  (irc-send bot (format #f "PRIVMSG ~a :~a" target message)))
+  (if (string-any (char-set #\nul #\return #\newline) message)
+      (error "Invalid message characters.")
+   (irc-send bot (format #f "PRIVMSG ~a :~a" target message))))
 
 (define (make-action message)
   "Wrap CTCP ACTION markup around MESSAGE."
