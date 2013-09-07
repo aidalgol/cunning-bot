@@ -14,6 +14,18 @@
       ;;(throw 'auth-fail "You need to be my master to do this")
       (error "You need to be my master to do this" s)))
 
+(define admin-command? (make-object-property))
+
+(define (decorate-admin proc)
+  (lambda (bot sender args)
+    (fail-if-not-master sender)
+    (proc bot sender args)))
+
+(define-syntax-rule (define-admin (function . args) . body)
+  (begin
+    (define function (decorate-admin (lambda args . body)))
+    (set! (admin-command? function) #t)))
+
 (define *auth-state* #f)
 
 (define (is-auth? s)
@@ -56,20 +68,17 @@
   (set! (@@ (cunning-bot bot) debugging)
         (not (@@ (cunning-bot bot) debugging))))
 
-(define (debug bot sender args)
-  (fail-if-not-master sender)
+(define-admin (debug bot sender args)
   (match (string-downcase (string-trim-both args))
     ("on" (set-debugging! #t) "done")
     ("off" (set-debugging! #f) "done")
     ("" (toggle-debugging!) "toggled")
     (other (string-append "option not supported: " other))))
 
-(define (my-quit bot sender args)
-  (fail-if-not-master sender)
+(define-admin (my-quit bot sender args)
   (quit-irc bot)
   (quit 0)) ; necessary? probably not a good idea
 
-(define (join bot sender args)
-  (fail-if-not-master sender)
+(define-admin (join bot sender args)
   (join-channels bot (string-tokenize args))
   "done.")
