@@ -13,7 +13,7 @@
     (string->symbol (string-trim args)))
   (cond ((bot-command bot command-name) =>
          (lambda (var)
-           (or (and=> (pk (object-documentation var))
+           (or (and=> (object-documentation var)
                       (lambda (doc)
                         (if (admin-command? var)
                             (string-append "(admin) " doc)
