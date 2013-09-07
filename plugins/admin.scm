@@ -46,6 +46,7 @@
   s)
 
 (define (auth bot sender args)
+  "auth [auth-string] : allows you to become the master, if you know the code"
   (match (string-tokenize args)
     (()
      (format #t "new auth string:~a~%" (new-auth-state))
@@ -61,6 +62,7 @@
     (_ "command expects only one arg")))
 
 (define (revoke bot sender args)
+  "revoke : revokes privileges for current master"
   (fail-if-not-master sender)
   (set! *master* #f)
   "done.")
@@ -73,6 +75,7 @@
         (not (@@ (cunning-bot bot) debugging))))
 
 (define-admin (debug bot sender args)
+  "debug [on|off] : turns debugging on or off. Toggles if no argument given."
   (match (string-downcase (string-trim-both args))
     ("on" (set-debugging! #t) "done")
     ("off" (set-debugging! #f) "done")
@@ -80,10 +83,12 @@
     (other (string-append "option not supported: " other))))
 
 (define-admin (my-quit bot sender args)
+  "quit : quits the server, and shuts down bot"
   (quit-irc bot)
   (quit 0)) ; necessary? probably not a good idea
 
 (define-admin (join bot sender args)
+  "join [CHANNEL] : joins one or more new channels"
   (join-channels bot (string-tokenize args))
   "done.")
 
@@ -92,7 +97,7 @@
 
 (define *guile-module* (resolve-module '(guile)))
 (define-admin (my-eval bot sender args)
-  "Evals one sexp in (guile)"
+  "eval SEXP : evals one sexp in (guile)"
   (call-with-values
       (lambda ()
         (eval (string->object args) *guile-module*))

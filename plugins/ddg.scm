@@ -6,6 +6,7 @@
   (not (string-index s char-whitespace?)))
 
 (define (ddg-define bot sender args)
+  "define WORD : returns the dictionary definition of WORD"
   (define args* (string-trim-both args))
   (if (not (one-word? args*))
       (string-append sender ": One word at a time, please.")

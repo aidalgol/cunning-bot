@@ -10,6 +10,7 @@
   (vector-ref firearms (random (vector-length firearms))))
 
 (define (shoot bot sender args)
+  "shoot NICK : shoots NICK with a randomly chosen novelty firearm"
   (define firearm (random-firearm))
   (make-action (format #f "loads its ~a and ~a ~a"
                        (car firearm)
