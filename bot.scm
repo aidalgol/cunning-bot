@@ -1,4 +1,4 @@
-;; Cunning Bot, an IRC bot written in Guile Scheme.
+;; This file is part of Cunning Bot, an IRC bot written in Guile Scheme.
 ;; Copyright (C) 2011  Aidan Gauland
 
 ;; This program is free software: you can redistribute it and/or modify
