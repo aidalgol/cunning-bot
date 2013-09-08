@@ -100,8 +100,7 @@
 
 (define-admin (my-quit bot sender args)
   "quit : quits the server, and shuts down bot"
-  (quit-irc bot)
-  (quit 0)) ; necessary? probably not a good idea
+  (quit-irc bot))
 
 (define-admin (join bot sender args)
   "join [CHANNEL] : joins one or more new channels"
