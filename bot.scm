@@ -39,7 +39,7 @@
   (and (string? string)
        (not (string-null? string))))
 
-(define (make-bot nick username realname server port)
+(define* (make-bot nick server port #:key (username nick) (realname nick))
   (define privmsg-hook (make-hook 5))
   (let ((bot ((record-constructor bot-type) #f #f #f server port #f
               (resolve-module (list (gensym "bot-commands:")))
