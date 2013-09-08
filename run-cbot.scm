@@ -1,7 +1,8 @@
 #!/usr/bin/env guile
 !#
 ;; This file is part of Cunning Bot, an IRC bot written in Guile Scheme.
-;; Copyright (C) 2011  Aidan Gauland
+;; Copyright (C) 2011,2013 Aidan Gauland
+;; Copyright (C) 2013 Ian Price
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
