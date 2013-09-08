@@ -1,0 +1,72 @@
+* The Cunning-Bot Plugin System
+
+Caveat Emptor: this design is subject to revision.
+
+** Introduction
+
+In order to make it easy to pick and choose which functionality you
+want from your bot, it has been organised as a system of
+plugins. Plugins are Guile modules following certain conventions, that
+make it easy to integrate with your bot. To load the help plugin, for
+example, you use the =use-module!= or =use-modules!= functions.
+
+: (use-module! bot 'help)
+
+** Why Modules?
+
+Modules form a natural boundary at which to create a plugin since it
+is already Guile's primary means of code separation and re-use.
+
+It makes testing very easy, because you don't need to have to interact
+with a running irc bot, you can just call the functions directly.
+
+Further, if you update a module, you can simply use Guile's
+=reload-module= function to have your running IRC bot use the new
+definitions.
+
+** How do I write one?
+
+As mentioned above, plugins are just Guile modules with some special
+conventions. If you've written a Guile module before, you know
+basically everything.
+
+Firstly, cunning-bot modules have the module name
+=(cunning-bot plugins $plugin-name)=. This does not mean that you need
+to put it in plugins/ directory per se, as you could create the module
+dynamically, or Guile may find it elsewhere on your =%load-path=.
+
+Secondly, apart from a few exceptions, any function you define and
+export from this module will be available as a bot command. Bot
+commands should take 3 arguments: the bot, a string telling you
+invoked the command, and a string of arguments to the command and
+command should return return a string.
+
+For example, 
+
+#+begin_src scheme
+  (define (shout bot sender args)
+    (string-append sender ": " (string-upcase args)))
+#+end_src
+
+creates a =shout= command, which can be used as in
+
+#+begin_example
+<user> bot: shout i am the king of the world
+<bot> user: I AM THE KING OF THE WORLD
+#+end_example
+
+** Special Exports
+A few names, if they are exported, are reserved for particular
+purposes, currently =setup!= and =teardown!=
+
+=setup!= is expected to be a function of zero arguments that is called
+when the plugin is loaded.
+
+=teardown!= is expected to be a function of zero arguments that is called
+when the plugin is unloaded (currently only when the bot quits).
+
+** Limitations
+
+The chief limitation of this design is that currently plugin state is
+global across multiple bots. I (ijp) have some idea about how to
+resolve this, but no code yet.
