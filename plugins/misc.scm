@@ -15,10 +15,45 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (define-module (cunning-bot plugins misc)
-  #:export (source ping))
+  #:use-module (cunning-bot bot)
+  #:export (source ping botsnack))
 
 (define (source bot sender args)
   "git clone git://github.com/aidalgol/cunning-bot.git")
 
 (define (ping bot sender args)
   "pong")
+
+(define (botsnack bot sender args)
+  (random-botsnack))
+
+(define (random-botsnack)
+  (vector-ref botsnack-responses (random (vector-length botsnack-responses))))
+
+(define botsnack-responses
+  (vector
+   ;; fsbot "standard" responses
+   "yay!"
+   ":)"
+   (make-action "dances happily")
+   "thank you!"
+   (make-action "beams")
+   "my favourite snack!"
+
+   ;; rudybot proprietary extensions
+
+   ;;; ungrateful
+   "yech, generic brand"
+   "barely even a mouthful"
+   "do I look like I eat vegan botsnacks?"
+
+   ;;; grateful
+   "you, sir, are a gent of the highest calibre"
+   "thank you and one day I will return the favour"
+   "OMG that's just what I needed LOL"
+
+   ;;; other
+   "yow!"
+   "this is going straight to my thighs"
+   "come on man, one more. I need my fix!"
+   ))
