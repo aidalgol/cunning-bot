@@ -23,7 +23,7 @@
              (cunning-bot commands))
 
 (define socket-file-name "cbot-repl-socket")
-(define bot (make-bot "Cunning_Bot" "Cunning_Bot" "Cunning Bot" "irc.example.net" 6667))
+(define bot (make-bot "Cunning_Bot" "irc.example.net" 6667))
 (for-each (lambda (command)
             (let ((name (car command))
                   (proc (cdr command)))
