@@ -222,12 +222,9 @@ catching and reporting any errors."
           (let ((proc (bot-command bot command)))
             (if proc
                 (let ((result (proc bot sender args)))
-                  (if (string? result)
-                      (begin
-                        (debug bot "Command ran successfully.~%")
-                        (send-privmsg bot result recipient))
-                      (error "Command return value not a string.")))
-                (error "No such command" command))))
+                  (debug bot "Command ran successfully.~%")
+                  (when (string? result)
+                    (send-privmsg bot result recipient))))))
         (lambda (key subr message args rest)
           (debug bot "The command failed. :(~%")
           (send-privmsg bot (apply format (append (list #f message) args))
