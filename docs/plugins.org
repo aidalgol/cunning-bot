@@ -38,8 +38,9 @@ dynamically, or Guile may find it elsewhere on your =%load-path=.
 Secondly, apart from a few exceptions, any function you define and
 export from this module will be available as a bot command. Bot
 commands should take 3 arguments: the bot, a string telling you
-invoked the command, and a string of arguments to the command and
-command should return return a string.
+invoked the command, and a string of arguments to the command. If your
+command returns a string, this will be sent to the sender as a
+privmsg.
 
 For example, 
 
