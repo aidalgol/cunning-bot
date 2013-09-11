@@ -21,6 +21,7 @@
   #:use-module (ice-9 format)
   #:use-module (spells network)
   #:export (make-bot
+            get-nick
             send-privmsg
             make-action
             register-command!

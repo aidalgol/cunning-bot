@@ -65,7 +65,8 @@
   "auth [auth-string] : allows you to become the master, if you know the code"
   (match (string-tokenize args)
     (()
-     (format #t "new auth string:~a~%" (new-auth-state))
+     (format #t "copy and paste the following line in your irc client to authenticate:\n")
+     (format #t "/msg ~a auth ~a~%" (get-nick bot) (new-auth-state))
      "New authentication string created. Check stdout.")
     ((str)
      (cond ((is-auth? str)
