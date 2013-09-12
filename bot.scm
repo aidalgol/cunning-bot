@@ -45,7 +45,7 @@
   (define privmsg-hook (make-hook 5))
   (let ((bot ((record-constructor bot-type) #f #f #f server port #f
               (resolve-module (list (gensym "bot-commands:")))
-              privmsg-hook (make-hook 0))))
+              privmsg-hook (make-hook 1))))
     (set-nick bot nick)
     (set-username bot username)
     (set-realname bot realname)
@@ -287,5 +287,5 @@ catching and reporting any errors."
   ;; Enter the message-polling loop.
   (do ((line (read-line-irc bot) (read-line-irc bot)))
       ((eof-object? line)
-       (run-hook (bot-quit-hook bot)))
+       (run-hook (bot-quit-hook bot) bot))
     (process-line bot line)))

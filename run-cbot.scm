@@ -38,5 +38,5 @@
 ;;   (lambda ()
 ;;     (quit-irc bot))
 
-(add-quit-hook! bot (lambda () (delete-file socket-file-name)))
+(add-quit-hook! bot (lambda (bot) (delete-file socket-file-name)))
 (start-bot bot '("#cunning-bot"))
