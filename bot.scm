@@ -28,6 +28,8 @@
             join-channels
             quit-irc
             add-quit-hook!
+            add-privmsg-hook!
+            remove-privmsg-hook!
             start-bot))
 
 (define line-end "\r\n")
@@ -45,7 +47,7 @@
   (define privmsg-hook (make-hook 5))
   (let ((bot ((record-constructor bot-type) #f #f #f server port #f
               (resolve-module (list (gensym "bot-commands:")))
-              privmsg-hook (make-hook 0))))
+              privmsg-hook (make-hook 1))))
     (set-nick bot nick)
     (set-username bot username)
     (set-realname bot realname)
@@ -122,6 +124,10 @@
 
 ;; `privmsg-hook' is run with the arguments (bot sender target message ctcp).
 (define bot-privmsg-hook (record-accessor bot-type 'privmsg-hook))
+(define (add-privmsg-hook! bot proc)
+  (add-hook! (bot-privmsg-hook bot) proc))
+(define (remove-privmsg-hook! bot proc)
+  (remove-hook! (bot-privmsg-hook bot) proc))
 
 (define bot-quit-hook (record-accessor bot-type 'quit-hook))
 (define (add-quit-hook! bot thunk)
@@ -226,7 +232,8 @@ catching and reporting any errors."
                 (let ((result (proc bot sender args)))
                   (debug bot "Command ran successfully.~%")
                   (when (string? result)
-                    (send-privmsg bot result recipient))))))
+                    (send-privmsg bot result recipient)))
+                (error "No such command:" command))))
         (lambda (key subr message args rest)
           (debug bot "The command failed. :(~%")
           (send-privmsg bot (apply format (append (list #f message) args))
@@ -282,5 +289,5 @@ catching and reporting any errors."
   ;; Enter the message-polling loop.
   (do ((line (read-line-irc bot) (read-line-irc bot)))
       ((eof-object? line)
-       (run-hook (bot-quit-hook bot)))
+       (run-hook (bot-quit-hook bot) bot))
     (process-line bot line)))
