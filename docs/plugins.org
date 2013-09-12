@@ -60,11 +60,12 @@ creates a =shout= command, which can be used as in
 A few names, if they are exported, are reserved for particular
 purposes, currently =setup!= and =teardown!=
 
-=setup!= is expected to be a function of zero arguments that is called
-when the plugin is loaded.
+=setup!= is expected to be a function of one argument (the bot) that
+is called when the plugin is loaded.
 
-=teardown!= is expected to be a function of zero arguments that is called
-when the plugin is unloaded (currently only when the bot quits).
+=teardown!= is expected to be a function of one argument (the bot)
+that is called when the plugin is unloaded (currently only when the
+bot quits).
 
 ** Limitations
 
