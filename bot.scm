@@ -26,6 +26,8 @@
             join-channels
             quit-irc
             add-quit-hook!
+            add-privmsg-hook!
+            remove-privmsg-hook!
             start-bot))
 
 (define line-end "\r\n")
@@ -120,6 +122,10 @@
 
 ;; `privmsg-hook' is run with the arguments (bot sender target message ctcp).
 (define bot-privmsg-hook (record-accessor bot-type 'privmsg-hook))
+(define (add-privmsg-hook! bot proc)
+  (add-hook! (bot-privmsg-hook bot) proc))
+(define (remove-privmsg-hook! bot proc)
+  (remove-hook! (bot-privmsg-hook bot) proc))
 
 (define bot-quit-hook (record-accessor bot-type 'quit-hook))
 (define (add-quit-hook! bot thunk)
