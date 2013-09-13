@@ -30,13 +30,15 @@
             add-quit-hook!
             add-privmsg-hook!
             remove-privmsg-hook!
+            bot-plugins
+            bot-plugins-set!
             start-bot))
 
 (define line-end "\r\n")
 (define version "Cunning Bot v0.1")
 (define debugging #f) ;; Whether to print debugging messages.
 
-(define bot-type (make-record-type "bot" '(nick username realname server port conn commands privmsg-hook quit-hook)))
+(define bot-type (make-record-type "bot" '(nick username realname server port conn commands privmsg-hook quit-hook plugins)))
 
 (define (valid-nick/username/realname? string)
   "Returns whether STRING is a valid nick, username, or realname."
@@ -47,7 +49,7 @@
   (define privmsg-hook (make-hook 5))
   (let ((bot ((record-constructor bot-type) #f #f #f server port #f
               (resolve-module (list (gensym "bot-commands:")))
-              privmsg-hook (make-hook 1))))
+              privmsg-hook (make-hook 1) '())))
     (set-nick bot nick)
     (set-username bot username)
     (set-realname bot realname)
@@ -132,6 +134,8 @@
 (define bot-quit-hook (record-accessor bot-type 'quit-hook))
 (define (add-quit-hook! bot thunk)
   (add-hook! (bot-quit-hook bot) thunk))
+(define bot-plugins (record-accessor bot-type 'plugins))
+(define bot-plugins-set! (record-modifier bot-type 'plugins))
 
 (define (irc-send bot string)
   "Send STRING to the IRC server associated with BOT."
