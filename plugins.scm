@@ -15,27 +15,49 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 (define-module (cunning-bot plugins)
+  #:use-module (srfi srfi-9)
+  #:use-module ((srfi srfi-1) #:select (alist-cons remove))
   #:use-module (cunning-bot bot)
   #:export (use-plugin!
             use-plugins!))
 
+
+(define-record-type plugin
+  (%make-plugin module interface setup teardown)
+  plugin?
+  (module plugin-module)
+  (interface plugin-interface)
+  (setup plugin-setup-procedure)
+  (teardown plugin-teardown-procedure))
+
+(define (lookup-plugin plugin-name)
+  (define module
+    (resolve-module `(cunning-bot plugins ,plugin-name)))
+  (define hidden-exports
+    (filter (lambda (f)
+              (module-defined? module f))
+            magic-exports))
+  (define public-interface
+    (resolve-interface `(cunning-bot plugins ,plugin-name) #:hide hidden-exports))
+  (define setup! (module-ref module 'setup! #f))
+  (define teardown! (module-ref module 'teardown! #f))
+  (%make-plugin module public-interface setup! teardown!))
+
+;; Setup should take additional arguments
 (define magic-exports '(setup! teardown!))
 
 (define (use-plugin! bot plugin-name)
-  (define plugin-module (resolve-module `(cunning-bot plugins ,plugin-name)))
-  (define hidden-exports
-    (filter (lambda (f)
-              (module-defined? plugin-module f))
-            magic-exports))
-  (define cleaned-module
-    (resolve-interface `(cunning-bot plugins ,plugin-name) #:hide hidden-exports))
+  "Loads plugin (cunning-bot plugins PLUGIN-NAME) into BOT"
+  ;; TODO: check plugin not already loaded
+  (define plugin (lookup-plugin plugin-name))
   (define command-module
     ((@@ (cunning-bot bot) get-commands) bot))
-  (module-use! command-module cleaned-module)
-  (when (module-defined? plugin-module 'setup!)
-    ((module-ref plugin-module 'setup!) bot))
-  (when (module-defined? plugin-module 'teardown!)
-    (add-quit-hook! bot (module-ref plugin-module 'teardown!))))
+  (module-use! command-module (plugin-interface plugin))
+  (and=> (plugin-setup-procedure plugin)
+         (lambda (f) (f bot)))
+  (and=> (plugin-teardown-procedure plugin)
+         (lambda (f) (add-quit-hook! bot f)))
+  (bot-plugins-set! bot (alist-cons plugin-name plugin (bot-plugins bot))))
 
 (define (use-plugins! bot plugins)
   (for-each (lambda (plugin)
