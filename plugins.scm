@@ -66,7 +66,8 @@
          (lambda (f) (f bot)))
   (and=> (plugin-teardown-procedure plugin)
          (lambda (f) (add-quit-hook! bot f)))
-  (bot-plugins-set! bot (alist-cons plugin-name plugin (bot-plugins bot))))
+  (bot-plugins-set! bot (alist-cons plugin-name plugin (bot-plugins bot)))
+  *unspecified*)
 
 (define (use-plugins! bot plugins)
   (for-each (lambda (plugin)
