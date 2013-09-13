@@ -16,9 +16,10 @@
 
 (define-module (cunning-bot plugins admin)
   #:use-module (cunning-bot bot)
+  #:use-module (cunning-bot plugins)
   #:use-module (ice-9 match)
   #:use-module (ice-9 documentation)
-  #:export (debug auth revoke (my-quit . quit) join privmsg))
+  #:export (debug auth revoke (my-quit . quit) join privmsg enable disable plugins))
 
 ;; Should be bot local
 (define *master* #f)
@@ -122,3 +123,18 @@
       ((a) (object->string a))
       ((a . b) (format #f "multiple values, returning first: ~s" a)))))
 
+(define-admin (enable bot sender args)
+  "enable PLUGIN : loads a plugin into the bot"
+  (use-plugin! bot (string->symbol (string-trim-both args)))
+  "done.")
+
+(define-admin (disable bot sender args)
+  "disable PLUGIN : unloads a plugin from the bot"
+  (remove-plugin! bot (string->symbol (string-trim-both args)))
+  "done.")
+
+(define-admin (plugins bot sender args)
+  "plugins : lists all plugins loaded into the bot"
+  (string-join (map (compose symbol->string car)
+                    (bot-plugins bot))
+               ", "))
