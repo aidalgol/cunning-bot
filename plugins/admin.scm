@@ -18,7 +18,7 @@
   #:use-module (cunning-bot bot)
   #:use-module (ice-9 match)
   #:use-module (ice-9 documentation)
-  #:export (debug auth revoke (my-quit . quit) join (my-eval . eval)))
+  #:export (debug auth revoke (my-quit . quit) join privmsg))
 
 ;; Should be bot local
 (define *master* #f)
