@@ -33,7 +33,7 @@
     ((@@ (cunning-bot bot) get-commands) bot))
   (module-use! command-module cleaned-module)
   (when (module-defined? plugin-module 'setup!)
-    ((module-ref plugin-module 'setup!)))
+    ((module-ref plugin-module 'setup!) bot))
   (when (module-defined? plugin-module 'teardown!)
     (add-quit-hook! bot (module-ref plugin-module 'teardown!))))
 
