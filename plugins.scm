@@ -19,8 +19,17 @@
   #:use-module ((srfi srfi-1) #:select (alist-cons remove))
   #:use-module (cunning-bot bot)
   #:export (use-plugin!
-            use-plugins!))
+            use-plugins!
+            remove-plugin!
+            ))
 
+(define (module-unuse! module interface)
+  (cond ((member interface (module-uses module))
+         (set-module-uses! module (remove (lambda (x) (eqv? x interface)) (module-uses module)))
+         (hash-clear! (module-import-obarray module)) ; necessary?
+         (module-modified module))
+        (else
+         (throw 'something))))
 
 (define-record-type plugin
   (%make-plugin module interface setup teardown)
@@ -63,3 +72,17 @@
   (for-each (lambda (plugin)
               (use-plugin! bot plugin))
             plugins))
+
+(define (remove-plugin! bot plugin-name)
+  (define command-module
+    ((@@ (cunning-bot bot) get-commands) bot))
+  (define plugin
+    (cond ((assoc plugin-name (bot-plugins bot)) => cdr)
+          (else (throw 'something))))
+  (module-unuse! command-module (plugin-interface plugin))
+  (let ((teardown! (plugin-teardown-procedure plugin)))
+    (when teardown!
+      (remove-quit-hook! bot teardown!)
+      (teardown! bot)))
+  (bot-plugins-set! bot (remove (lambda (x) (eqv? (car x) plugin-name)) (bot-plugins bot)))
+  *unspecified*)
