@@ -28,6 +28,7 @@
             join-channels
             quit-irc
             add-quit-hook!
+            remove-quit-hook!
             add-privmsg-hook!
             remove-privmsg-hook!
             bot-plugins
@@ -134,6 +135,9 @@
 (define bot-quit-hook (record-accessor bot-type 'quit-hook))
 (define (add-quit-hook! bot thunk)
   (add-hook! (bot-quit-hook bot) thunk))
+(define (remove-quit-hook! bot thunk)
+  (remove-hook! (bot-quit-hook bot) thunk))
+
 (define bot-plugins (record-accessor bot-type 'plugins))
 (define bot-plugins-set! (record-modifier bot-type 'plugins))
 
