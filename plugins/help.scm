@@ -17,7 +17,7 @@
 (define-module (cunning-bot plugins help)
   #:use-module (ice-9 documentation)
   #:use-module (cunning-bot bot)
-  #:export (help))
+  #:export (help commands))
 
 (define admin-command? (@@ (cunning-bot plugins admin) admin-command?))
 
@@ -36,3 +36,31 @@
                             doc)))
                (format #f "no help for command: ~a" command-name))))
         (else (format #f "no such command: ~a" command-name))))
+
+(define get-commands (@@ (cunning-bot bot) get-commands))
+(define admin-command? (@@ (cunning-bot plugins admin) admin-command?))
+(define is-master? (@@ (cunning-bot plugins admin) is-master?))
+
+(define* (command-names bot #:key (admin? #f))
+  (define command-module (get-commands bot))
+  (define imports (module-uses command-module))
+  (define h (make-hash-table))
+  (define add!
+    (if admin?
+        (lambda (key value)
+          (hash-set! h key #t))
+        (lambda (key value)
+          (unless (admin-command? (variable-ref value))
+            (hash-set! h key #t)))))
+  (for-each (lambda (module)
+              (hash-for-each add! (module-obarray module)))
+            (cons command-module imports))
+  (hash-map->list (lambda (key value) key) h))
+
+(define (commands bot sender args)
+  "COMMANDS : returns a list of all the bot commands"
+  (define commands
+    (command-names bot #:admin? (is-master? sender)))
+  (string-append sender
+                 ": "
+                 (string-join (map symbol->string commands) ", ")))
