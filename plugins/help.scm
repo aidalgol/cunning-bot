@@ -17,7 +17,7 @@
 (define-module (cunning-bot plugins help)
   #:use-module (ice-9 documentation)
   #:use-module (cunning-bot bot)
-  #:export (help commands))
+  #:export (help commands dont-help))
 
 (define admin-command? (@@ (cunning-bot plugins admin) admin-command?))
 
@@ -64,3 +64,5 @@
   (string-append sender
                  ": "
                  (string-join (map symbol->string commands) ", ")))
+
+(define (dont-help . _) (make-action "blows a raspberry"))
