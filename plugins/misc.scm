@@ -18,6 +18,8 @@
   #:use-module (cunning-bot bot)
   #:export (source ping botsnack))
 
+(define random-state (random-state-from-platform))
+
 (define (source bot sender args)
   "git clone git://github.com/aidalgol/cunning-bot.git")
 
@@ -28,7 +30,7 @@
   (random-botsnack))
 
 (define (random-botsnack)
-  (vector-ref botsnack-responses (random (vector-length botsnack-responses))))
+  (vector-ref botsnack-responses (random (vector-length botsnack-responses) random-state)))
 
 (define botsnack-responses
   (vector

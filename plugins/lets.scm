@@ -27,6 +27,8 @@
   (vector corpus-vector corpus-vector-set!)
   (filename corpus-filename))
 
+(define random-state (random-state-from-platform))
+
 (define* (make-corpus #:optional (filename #f))
   (%make-corpus 0 #() filename))
 
@@ -57,7 +59,7 @@
 
 (define (random-lets)
   (define size (corpus-size *corpus*))
-  (vector-ref (corpus-vector *corpus*) (random size)))
+  (vector-ref (corpus-vector *corpus*) (random size random-state)))
 
 (define lets-string?
   (let ((rx (make-regexp "^ *let'?s " regexp/icase)))

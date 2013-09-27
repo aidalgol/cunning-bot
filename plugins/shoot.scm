@@ -18,12 +18,14 @@
   #:use-module (cunning-bot bot)
   #:export (shoot))
 
+(define random-state (random-state-from-platform))
+
 (define firearms
   #(("shotgun" . "blasts")
     ("hose" . "drenches")))
 
 (define (random-firearm)
-  (vector-ref firearms (random (vector-length firearms))))
+  (vector-ref firearms (random (vector-length firearms) random-state)))
 
 (define (shoot bot sender args)
   "shoot NICK : shoots NICK with a randomly chosen novelty firearm"
