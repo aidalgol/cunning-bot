@@ -21,8 +21,9 @@
 (define random-state (random-state-from-platform))
 
 (define firearms
-  #(("shotgun" . "blasts")
-    ("hose" . "drenches")))
+  (call-with-input-file
+      (%search-load-path "cunning-bot/plugins/firearms.sexp")
+    read))
 
 (define (random-firearm)
   (vector-ref firearms (random (vector-length firearms) random-state)))
