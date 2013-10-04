@@ -37,7 +37,6 @@
                (format #f "no help for command: ~a" command-name))))
         (else (format #f "no such command: ~a" command-name))))
 
-(define get-commands (@@ (cunning-bot bot) get-commands))
 (define admin-command? (@@ (cunning-bot plugins admin) admin-command?))
 (define is-master? (@@ (cunning-bot plugins admin) is-master?))
 

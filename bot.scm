@@ -34,6 +34,7 @@
             remove-privmsg-hook!
             bot-plugins
             bot-plugins-set!
+            get-commands
             start-bot))
 
 (define line-end "\r\n")

@@ -60,7 +60,7 @@
   ;; TODO: check plugin not already loaded
   (define plugin (lookup-plugin plugin-name))
   (define command-module
-    ((@@ (cunning-bot bot) get-commands) bot))
+    (get-commands bot))
   (module-use! command-module (plugin-interface plugin))
   (and=> (plugin-setup-procedure plugin)
          (lambda (f) (f bot)))
@@ -76,7 +76,7 @@
 
 (define (remove-plugin! bot plugin-name)
   (define command-module
-    ((@@ (cunning-bot bot) get-commands) bot))
+    (get-commands bot))
   (define plugin
     (cond ((assoc plugin-name (bot-plugins bot)) => cdr)
           (else (throw 'something))))
