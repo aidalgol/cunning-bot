@@ -20,6 +20,7 @@
   #:use-module (ice-9 regex)
   #:use-module (ice-9 format)
   #:use-module (spells network)
+  #:use-module (srfi srfi-9)
   #:export (make-bot
             get-nick
             send-privmsg
@@ -39,7 +40,20 @@
 (define version "Cunning Bot v0.1")
 (define debugging #f) ;; Whether to print debugging messages.
 
-(define bot-type (make-record-type "bot" '(nick username realname server port conn commands privmsg-hook quit-hook plugins)))
+;; TODO: define pretty printer
+(define-record-type <bot>
+  (%make-bot nick username realname server port conn commands privmsg-hook quit-hook plugins)
+  bot?
+  (nick get-nick %set-nick!)
+  (username get-username %set-username!)
+  (realname get-realname %set-realname!)
+  (server get-server)
+  (port get-port)
+  (conn get-conn set-conn)
+  (commands get-commands)
+  (privmsg-hook bot-privmsg-hook)
+  (quit-hook bot-quit-hook)
+  (plugins bot-plugins bot-plugins-set!))
 
 (define (valid-nick/username/realname? string)
   "Returns whether STRING is a valid nick, username, or realname."
@@ -48,9 +62,9 @@
 
 (define* (make-bot nick server port #:key (username nick) (realname nick))
   (define privmsg-hook (make-hook 5))
-  (let ((bot ((record-constructor bot-type) #f #f #f server port #f
-              (resolve-module (list (gensym "bot-commands:")))
-              privmsg-hook (make-hook 1) '())))
+  (let ((bot (%make-bot #f #f #f server port #f
+                        (resolve-module (list (gensym "bot-commands:")))
+                        privmsg-hook (make-hook 1) '())))
     (set-nick bot nick)
     (set-username bot username)
     (set-realname bot realname)
@@ -58,34 +72,27 @@
     (add-hook! privmsg-hook handle-commands)
     bot))
 
-(define get-server (record-accessor bot-type 'server))
-(define get-port (record-accessor bot-type 'port))
-
-(define get-nick (record-accessor bot-type 'nick))
 (define (set-nick bot nick)
   (if (not (valid-nick/username/realname? nick))
       (error "Invalid nick.")
       (begin
-        ((record-modifier bot-type 'nick) bot nick)
+        (%set-nick! bot nick)
         ;; Send NICK change message to the server if we're connected.
         (let ((out (get-bot-out-port bot)))
           (when (and (port? out)
                      (not (port-closed? out)))
             (irc-send bot (format #f "NICK ~a" nick)))))))
 
-(define get-username (record-accessor bot-type 'username))
 (define (set-username bot username)
   (if (not (valid-nick/username/realname? username))
       (error "Invalid username.")
-      ((record-modifier bot-type 'username) bot username)))
+      (%set-username! bot username)))
 
-(define get-realname (record-accessor bot-type 'realname))
 (define (set-realname bot realname)
   (if (not (valid-nick/username/realname? realname))
       (error "Invalid realname.")
-      ((record-modifier bot-type 'realname) bot realname)))
+      (%set-realname! bot realname)))
 
-(define get-commands (record-accessor bot-type 'commands))
 (define (register-command! bot name function)
   (module-define! (get-commands bot) name function))
 
@@ -93,9 +100,6 @@
   (define commands (get-commands bot))
   (cond ((module-variable commands command-name) => variable-ref)
         (else #f)))
-
-(define get-conn (record-accessor bot-type 'conn))
-(define set-conn (record-modifier bot-type 'conn))
 
 (define (get-bot-out-port bot)
   (let ((conn (get-conn bot)))
@@ -126,20 +130,15 @@
     (format #t (string-append "~a@~a: " str) (get-nick bot) (get-server bot) exp ...)))
 
 ;; `privmsg-hook' is run with the arguments (bot sender target message ctcp).
-(define bot-privmsg-hook (record-accessor bot-type 'privmsg-hook))
 (define (add-privmsg-hook! bot proc)
   (add-hook! (bot-privmsg-hook bot) proc))
 (define (remove-privmsg-hook! bot proc)
   (remove-hook! (bot-privmsg-hook bot) proc))
 
-(define bot-quit-hook (record-accessor bot-type 'quit-hook))
 (define (add-quit-hook! bot thunk)
   (add-hook! (bot-quit-hook bot) thunk))
 (define (remove-quit-hook! bot thunk)
   (remove-hook! (bot-quit-hook bot) thunk))
-
-(define bot-plugins (record-accessor bot-type 'plugins))
-(define bot-plugins-set! (record-modifier bot-type 'plugins))
 
 (define (irc-send bot string)
   "Send STRING to the IRC server associated with BOT."
