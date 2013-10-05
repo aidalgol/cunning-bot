@@ -16,23 +16,19 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 (use-modules (cunning-bot bot)
-             (system repl server)
-             (cunning-bot plugins)
+             (cunning-bot sugar)
              (cunning-bot commands))
 
-(define socket-file-name "cbot-repl-socket")
-(define bot (make-bot "Cunning_Bot" "irc.example.net" 6667))
-(for-each (lambda (command)
-            (let ((name (car command))
-                  (proc (cdr command)))
-             (register-command! bot name proc)))
-          `((flay . ,flay)
-            (say-hello . ,say-hello)))
-
-(use-plugin! bot 'shoot)
-(spawn-server (make-unix-domain-server-socket #:path socket-file-name))
+(define cunning-bot
+  (bot
+   #:nick "cunning-bot"
+   #:server "irc.freenode.net"
+   #:port 6667
+   #:plugins '(shoot
+               (repl "cbot-repl-socket"))
+   #:commands `((flay . ,flay)
+                (say-hello . ,say-hello))))
 
 ;; Does not work because of bug#13018.  Fixed in trunk.  See
 ;; https://lists.gnu.org/archive/html/bug-guile/2013-08/msg00003.html
@@ -40,6 +36,4 @@
 ;; (sigaction SIGINT
 ;;   (lambda ()
 ;;     (quit-irc bot))
-
-(add-quit-hook! bot (lambda (bot) (delete-file socket-file-name)))
-(start-bot bot '("#cunning-bot"))
+(start-bot cunning-bot '("#cunning-bot"))
