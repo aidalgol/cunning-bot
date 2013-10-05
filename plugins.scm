@@ -56,17 +56,25 @@
 (define magic-exports '(setup! teardown!))
 
 (define (use-plugin! bot plugin-name)
-  "Loads plugin (cunning-bot plugins PLUGIN-NAME) into BOT"
+  "Loads plugin (cunning-bot plugins PLUGIN-NAME) into BOT.
+
+If PLUGIN-NAME is a symbol, it is the name of the plugin to
+load. If it is a list, then the car is the name, and the cdr is the
+arguments to give to the setup! procedure of the plugin."
   ;; TODO: check plugin not already loaded
-  (define plugin (lookup-plugin plugin-name))
+  (define setup-args
+    (if (pair? plugin-name) (cdr plugin-name) '()))
+  (define plugin-name*
+    (if (pair? plugin-name) (car plugin-name) plugin-name))
+  (define plugin (lookup-plugin plugin-name*))
   (define command-module
     (get-commands bot))
   (module-use! command-module (plugin-interface plugin))
   (and=> (plugin-setup-procedure plugin)
-         (lambda (f) (f bot)))
+         (lambda (f) (apply f bot setup-args)))
   (and=> (plugin-teardown-procedure plugin)
          (lambda (f) (add-quit-hook! bot f)))
-  (bot-plugins-set! bot (alist-cons plugin-name plugin (bot-plugins bot)))
+  (bot-plugins-set! bot (alist-cons plugin-name* plugin (bot-plugins bot)))
   *unspecified*)
 
 (define (use-plugins! bot plugins)
