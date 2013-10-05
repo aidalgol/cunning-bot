@@ -107,6 +107,20 @@
     (when (connection? conn)
       (connection-input-port conn))))
 
+(define (bot-log bot #rest args)
+  (let ((log-port (open-file
+                   (format #f "~a@~a_~a.txt"
+                           (get-nick bot) (get-server bot)
+                           ;; ISO 8601 date format
+                           (strftime "%F" (localtime (current-time))))
+                   "a")))
+    (apply format log-port args)
+    (close-port log-port)))
+
+(define-syntax-rule (debug bot str exp ...)
+  (when debugging
+    (bot-log bot exp ...)))
+
 (define (disconnect-bot bot)
   (let ((conn (get-conn bot)))
     (when (connection? conn)
@@ -116,14 +130,10 @@
   (disconnect-bot bot)
   (let ((server (get-server bot))
         (port (get-port bot)))
-    (format #t "Establishing TCP connection to ~a on port ~d..."
+    (bot-log bot "Establishing TCP connection to ~a on port ~d..."
             server port)
     (set-conn bot (open-tcp-connection server port)))
-  (format #t "done.~%"))
-
-(define-syntax-rule (debug bot str exp ...)
-  (when debugging
-    (format #t (string-append "~a@~a: " str) (get-nick bot) (get-server bot) exp ...)))
+  (bot-log bot "done.~%"))
 
 ;; `privmsg-hook' is run with the arguments (bot sender target message ctcp).
 (define bot-privmsg-hook (record-accessor bot-type 'privmsg-hook))
@@ -263,7 +273,7 @@ catching and reporting any errors."
   (connect-bot bot)
 
   ;; Setup the IRC connection.
-  (display "Setting up IRC connection...") (debug bot "~%")
+  (bot-log bot "Setting up IRC connection...") (debug bot "~%")
   (irc-send bot (format #f "NICK ~a" (get-nick bot)))
   (irc-send bot (format #f "USER ~a 0 * :~a"
                         (get-username bot) (get-realname bot)))
@@ -273,7 +283,7 @@ catching and reporting any errors."
            (last-msg-num #f))
     (if (eof-object? line)
         (begin
-          (format #t "Error: Connection closed.~%")
+          (bot-log bot "Error: Connection closed.~%")
           (quit bot)))
     (if (not last-msg-num)
         ;; Start counting responses when we reach the first one.
@@ -286,13 +296,13 @@ catching and reporting any errors."
                    (< last-msg-num 4))
           (lp (read-line-irc bot)
               (1+ last-msg-num)))))
-  (display "done.") (newline)
+  (bot-log bot "done.~%")
   ;; We are now connected to the IRC server.
 
   ;; Join channels.
-  (display "Joining channels...")
+  (bot-log bot "Joining channels...")
   (join-channels bot channels)
-  (format #t "done.~%")
+  (bot-log bot "done.~%")
 
   ;; Enter the message-polling loop.
   (do ((line (read-line-irc bot) (read-line-irc bot)))
