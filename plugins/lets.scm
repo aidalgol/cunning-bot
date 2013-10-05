@@ -79,7 +79,7 @@
             (file->corpus lets-file))
           (lambda args
             (if (= ENOENT (system-error-errno args))
-                (make-corpus filename)  ; if it doesn't exist, make it
+                (make-corpus lets-file)  ; if it doesn't exist, make it
                 (apply throw args)))))
   (add-privmsg-hook! bot snarf-lets))
 
