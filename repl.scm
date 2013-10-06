@@ -14,20 +14,29 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-(define-module (cunning-bot plugins repl)
+(define-module (cunning-bot repl)
   #:use-module (system repl server)
-  #:export (setup! teardown!))
+  #:export (start-repl shutdown-repl))
 
 (define default-socket-name
   "/tmp/cbot-repl-socket") ;; autogen it?
 
-(define socket-file #f)
+(define socket-file-name #f)
 
-(define* (setup! bot #:optional (socket-name default-socket-name))
-  (set! socket-file socket-name)
-  (spawn-server (make-unix-domain-server-socket #:path socket-name)))
+(define* (start-repl #:optional (socket-name default-socket-name))
+  (set! socket-file-name socket-name)
+  (catch 'system-error
+    (lambda ()
+      (spawn-server (make-unix-domain-server-socket #:path socket-name)))
+    (lambda (key subr message args rest)
+      (display "Error during REPL startup:") (newline)
+      (display-error current-error-port subr message args rest))))
 
-(define (teardown! bot)
-  ;; TODO: we need a way to do cleanup on fail
-  (delete-file socket-file)
-  (set! socket-file! #f))
+(define (shutdown-repl bot)
+  (catch system-error
+    (lambda ()
+      (delete-file socket-file)
+      (set! socket-file! #f))
+    (lambda (key subr message args rest)
+      (display "Error during REPL shutdown:") (newline)
+      (display-error current-error-port subr message args rest))))

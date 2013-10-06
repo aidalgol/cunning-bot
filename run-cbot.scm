@@ -16,8 +16,10 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 (use-modules (cunning-bot bot)
              (cunning-bot sugar)
+             (cunning-bot repl)
              (cunning-bot commands))
 
 (define cunning-bot
@@ -25,10 +27,11 @@
    #:nick "cunning-bot"
    #:server "irc.freenode.net"
    #:port 6667
-   #:plugins '(shoot
-               (repl "cbot-repl-socket"))
+   #:plugins '(shoot)
    #:commands `((flay . ,flay)
                 (say-hello . ,say-hello))))
+
+(start-repl)
 
 ;; Does not work because of bug#13018.  Fixed in trunk.  See
 ;; https://lists.gnu.org/archive/html/bug-guile/2013-08/msg00003.html
