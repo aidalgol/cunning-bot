@@ -191,7 +191,7 @@ ignored."
    ((string-match "^PING" line)
     (irc-send bot (pong line)))
    ;; PRIVMSGs
-   ((string-match "^:(.*)!.*@.* PRIVMSG (.*) :(.*)" line) =>
+   ((string-match "^:(.*)!.*@.* PRIVMSG ([^:]*) :(.*)" line) =>
     (lambda (match)
       (handle-privmsg bot
                       (match:substring match 1)
