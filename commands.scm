@@ -20,7 +20,7 @@
 
 (define-public (flay bot sender args)
   (if (string-null? args)
-      "Whom do you want me to flay?"
+      "Who do you want me to flay?"
       (make-action (string-append "flays " args "."))))
 
 (define-public (say-hello bot sender args)
