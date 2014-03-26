@@ -5,10 +5,10 @@ Caveat Emptor: this design is subject to revision.
 ** Introduction
 
 In order to make it easy to pick and choose which functionality you
-want from your bot, it has been organised as a system of
-plugins. Plugins are Guile modules following certain conventions, that
-make it easy to integrate with your bot. To load the help plugin, for
-example, you use the =use-module!= or =use-modules!= functions.
+want from your bot, it has been organised as a system of plugins.
+Plugins are Guile modules following certain conventions, that make it
+easy to integrate with your bot. To load the help plugin, for example,
+you use the =use-module!= or =use-modules!= functions.
 
 : (use-module! bot 'help)
 
@@ -27,19 +27,19 @@ definitions.
 ** How do I write one?
 
 As mentioned above, plugins are just Guile modules with some special
-conventions. If you've written a Guile module before, you know
+conventions.  If you've written a Guile module before, you know
 basically everything.
 
-Firstly, cunning-bot modules have the module name
-=(cunning-bot plugins $plugin-name)=. This does not mean that you need
-to put it in plugins/ directory per se, as you could create the module
-dynamically, or Guile may find it elsewhere on your =%load-path=.
+Firstly, cunning-bot modules have the module name =(cunning-bot
+plugins $plugin-name)=.  This does not mean that you need to put it in
+plugins/ directory per se, as you could create the module dynamically,
+or Guile may find it elsewhere on your =%load-path=.
 
 Secondly, apart from a few exceptions, any function you define and
-export from this module will be available as a bot command. Bot
-commands should take 3 arguments: the bot, a string telling you
-invoked the command, and a string of arguments to the command. If your
-command returns a string, this will be sent to the sender as a
+export from this module will be available as a bot command.  Bot
+commands should take 3 arguments: the bot, a string telling you who
+invoked the command, and a string of arguments to the command.  If
+your command returns a string, this will be sent to the sender as a
 privmsg.
 
 For example, 
