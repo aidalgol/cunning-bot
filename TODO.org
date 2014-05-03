@@ -1,0 +1,5 @@
+* TODO Proper logging
+Right now, a bot just spits out status messages to stdout.  We need to switch to using a logging framework.
+
+* TODO Document setup
+Now that a bot can do something useful, via plugins, we need to document the interface.
